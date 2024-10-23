@@ -1,0 +1,35 @@
+import os;
+
+# datasets
+STONEFLY = "stonefly";
+SEGMENTATION = "segmentation";
+
+# categories
+CAL = 'cal';
+DOR = 'dor';
+HES = 'hes';
+ISO = 'iso';
+MOS = 'mos';
+PTE = 'pte';
+SWE = 'swe';
+YOR = 'yor';
+ZAP = 'zap';
+
+# sets
+set0 = 'set0';
+set1 = 'set1';
+
+LABELS = [CAL, DOR, HES, ISO, MOS, PTE, SWE, YOR, ZAP];
+ALLOWED_IMAGE_FORMATS = ('.jpg', '.jpeg', '.png');
+
+# paths
+PROJECT_ROOT_DIR = ".";
+DATASETS_ROOT_DIR = ['stonefly', 'segmentation'];
+
+VALIDATION_SIZE = 0.2; # a ratio of split
+random_state = 42;
+
+# preprocessing parameters
+img_height, img_width = 96, 128;
+gamma = 0.4;
+gaussianSigma = 1;  
