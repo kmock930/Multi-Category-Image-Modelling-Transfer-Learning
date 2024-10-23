@@ -9,6 +9,9 @@ outputs/
 # C extensions
 *.so
 
+# ignoring large generated files
+*.npy
+
 # Distribution / packaging
 .Python
 build/
