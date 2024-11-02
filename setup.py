@@ -121,7 +121,7 @@ def decodeLabel(y: np.ndarray):
     '''
     Decode the numeric labels
     '''
-    return LABEL_ENCODER.inverse_transform(y);
+    return LABEL_ENCODER.inverse_transform(y.astype(int));
 
 
 def preprocess(img_array: np.ndarray):
