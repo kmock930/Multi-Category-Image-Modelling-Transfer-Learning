@@ -14,6 +14,9 @@ from sklearn.model_selection import train_test_split;
 import traceback;
 import tensorflow as tf;
 from tensorflow.keras.applications.resnet import preprocess_input;
+from sklearn.preprocessing import LabelEncoder;
+
+LABEL_ENCODER = LabelEncoder();
 
 def load_image_path(dataset: str, setName: str):
     y = np.array([]); # labels
@@ -107,6 +110,19 @@ def load_images(dataset: str, setName: str):
 
     X = np.array(images);
     return X, y;
+
+def encodeLabel(y: np.ndarray):
+    '''
+    Encode the categorical labels
+    '''
+    return LABEL_ENCODER.fit_transform(y);
+
+def decodeLabel(y: np.ndarray):
+    '''
+    Decode the numeric labels
+    '''
+    return LABEL_ENCODER.inverse_transform(y);
+
 
 def preprocess(img_array: np.ndarray):
     # Resizing to make the image smaller in resolution
