@@ -97,12 +97,43 @@ class Model:
         '''
         Plot training & validation accuracy values
         '''
-        plt.plot(history.history['accuracy']);
-        plt.title('Learning Curve - Model vs Accuracy');
+        # deduce the string of the 'accuracy' metric to be used
+        k = '';
+        if 'accuracy' in history.history :
+            k = 'accuracy';    
+
+        if 'acc' in history.history :
+            k = 'acc';
+        # accuracy plot
+        plt.plot(history.history[k]);
+        plt.plot(history.history['val_'+ k])
+        plt.title('Learning Curve - Model Accuracy');
         plt.ylabel('Accuracy');
         plt.xlabel('Epoch');
-        plt.legend(['Train'], loc='upper left');
+        plt.legend(['Train', 'Validation'], loc='upper left');
         plt.show();
+    
+        # loss plot
+        plt.plot(history.history['loss']);
+        plt.plot(history.history['val_loss']);
+        plt.title('Model loss');
+        plt.ylabel('Loss');
+        plt.xlabel('Epoch');
+        plt.legend(['Train', 'Validation'], loc='upper left');
+        plt.show();
+
+    def evaluate(self, model, X_train: np.ndarray, y_train: np.ndarray, X_val: np.ndarray, y_val: np.ndarray, X_test: np.ndarray, y_test: np.ndarray):
+        '''
+        Calculate binary cross-entropy error on each dataset
+        '''
+        train_loss, train_accuracy = model.evaluate(X_train, y_train, verbose=0);
+        val_loss, val_accuracy = model.evaluate(X_val, y_val, verbose=0);
+        test_loss, test_accuracy = model.evaluate(X_test, y_test, verbose=0);
+        print(f"Training Binary Cross-Entropy error: {train_loss}");
+        print(f"Validation Binary Cross-Entropy error: {val_loss}");
+        print(f"Testing Binary Cross-Entropy error: {test_loss}");
+        return ([train_loss, train_accuracy], [val_loss, val_accuracy], [test_loss, test_accuracy]);
+
 
     def predict(self, model, X_test: np.ndarray):
         y_pred = model.predict(X_test);
