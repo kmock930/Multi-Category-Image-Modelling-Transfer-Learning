@@ -4,6 +4,7 @@ import numpy as np;
 import skimage.io as imshow;
 from skimage.io import imread;
 from skimage import exposure;
+from skimage.exposure import rescale_intensity;
 from skimage.transform import resize;
 from skimage.color import rgb2gray;
 from skimage.filters import gaussian, sobel;
@@ -11,6 +12,8 @@ import matplotlib.pyplot as plt;
 import random;
 from sklearn.model_selection import train_test_split;
 import traceback;
+import tensorflow as tf;
+from tensorflow.keras.applications.resnet import preprocess_input;
 
 def load_image_path(dataset: str, setName: str):
     y = np.array([]); # labels
@@ -82,41 +85,41 @@ def load_image_path(dataset: str, setName: str):
     return imagePaths, y;
 
 def load_images(dataset: str, setName: str):
-    X = np.empty((0, constants.img_height, constants.img_width));
+    X = np.empty(constants.input_shape);
     img_paths, y  = load_image_path(dataset=dataset, setName=setName);
     imgIndToDisplay = random.randint(0, len(img_paths) - 1);
+    images = [];
     for imgInd in range(len(img_paths)):
         if (os.path.isfile(img_paths[imgInd])):
-            img_array = imread(img_paths[imgInd]);
+            # keep in RGB 3 channels
+            img_array = imread(img_paths[imgInd], as_gray=False);
 
         if (imgInd == imgIndToDisplay):
             displayImage(img_array, y[imgInd], isBefore=True);
 
         img_array = preprocess(img_array);
 
-        img_array = normalize(img_array);
-
         if (imgInd == imgIndToDisplay):
             displayImage(img_array, y[imgInd], isBefore=False);
 
         # save an image to samples array
-        X = np.append(X, [img_array], axis=0);
+        images.append(img_array);
+
+    X = np.array(images);
     return X, y;
 
 def preprocess(img_array: np.ndarray):
     # Resizing to make the image smaller in resolution
     img_array = setResolution(img_array);
 
-    # Grayscale
-    if (img_array.ndim == 3): # currently a color image in RGB
-        img_array = rgb2gray(img_array);
-
     # Normalize to [0,1] range
     img_array = normalize(img_array);
 
+    img_array = preprocess_input(img_array);
+
     # point processing - Gamma Correction
     # to adjust the brightness
-    img_array = exposure.adjust_gamma(img_array, gamma=constants.gamma);
+    #img_array = exposure.adjust_gamma(img_array, gamma=constants.gamma);
 
     # histogram equalization - Adaptive equalization
     img_array = exposure.equalize_hist(img_array);
@@ -126,16 +129,24 @@ def preprocess(img_array: np.ndarray):
     img_array = sobel(img_array);
 
     # Gaussian blur: https://scikit-image.org/docs/dev/api/skimage.filters.html#skimage.filters.gaussian
-    # for smooting
+    # for smoothing
     img_array = gaussian(img_array, sigma=constants.gaussianSigma); # sigma = standard deviation for the kernel
 
     return img_array;
 
 def normalize(img_array: np.ndarray):
-    return img_array / 255.0;  # Normalize to [0, 1] range
+    '''
+    Normalize an image array to [0, 1] range,
+    according to resnet's model standard.
+    '''
+    img_array = img_array * 255;
+    img_array = img_array.astype('uint8');
+    img_array = rescale_intensity(img_array, in_range=(0, 255));
+    img_array = np.clip(img_array, 0, None);
+    return img_array;
 
 def setResolution(img_array: np.ndarray):
-    return resize(img_array, (constants.img_height, constants.img_width)); # keep original dimensions
+    return resize(img_array, constants.input_shape ); # keep original dimensions
 
 def displayImage(img_array: np.ndarray, category: str, isBefore):
     if (isBefore == True):

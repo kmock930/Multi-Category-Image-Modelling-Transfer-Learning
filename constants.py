@@ -31,5 +31,11 @@ random_state = 42;
 
 # preprocessing parameters
 img_height, img_width = 96, 128;
-gamma = 0.4;
-gaussianSigma = 1;  
+gamma = 0.8;
+gaussianSigma = 0.5;  
+
+# Models
+input_shape = (img_height, img_width, 3);
+optimizer = 'adam';
+loss = 'binary_crossentropy';
+metrics = ['accuracy'];
