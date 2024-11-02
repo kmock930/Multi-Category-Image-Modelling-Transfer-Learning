@@ -133,10 +133,6 @@ def preprocess(img_array: np.ndarray):
 
     img_array = preprocess_input(img_array);
 
-    # point processing - Gamma Correction
-    # to adjust the brightness
-    #img_array = exposure.adjust_gamma(img_array, gamma=constants.gamma);
-
     # histogram equalization - Adaptive equalization
     img_array = exposure.equalize_hist(img_array);
 
@@ -166,10 +162,10 @@ def setResolution(img_array: np.ndarray):
 
 def displayImage(img_array: np.ndarray, category: str, isBefore):
     if (isBefore == True):
-        plt.title(f"Sample Image in {category} category BEFORE being processed");
+        plt.title(f"Sample Image in {category.upper()} category BEFORE being processed");
         plt.imshow(img_array);
     else:
-        plt.title(f"Sample Image in {category} category AFTER being processed");
+        plt.title(f"Sample Image in {category.upper()} category AFTER being processed");
         plt.imshow(img_array, cmap="gray");
     
     plt.show();
