@@ -11,6 +11,7 @@ outputs/
 
 # ignoring large generated files
 *.npy
+*.txt
 
 # Distribution / packaging
 .Python
