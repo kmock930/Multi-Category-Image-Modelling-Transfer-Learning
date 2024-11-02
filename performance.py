@@ -6,6 +6,7 @@ from setup import decodeLabel;
 def printConfMtx(y_true: np.ndarray, y_pred: np.ndarray):
     y_pred = decodeLabel(y_pred);
     y_pred = np.resize(y_pred, y_true.shape);
+    print(f"Decoded Labels in Prediction array: {np.unique(y_pred)}");
 
     pandas_y_actual = pd.Series(y_true, name='Actual');
     pandas_y_pred = pd.Series(y_pred, name='Predicted');

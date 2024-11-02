@@ -115,7 +115,7 @@ def encodeLabel(y: np.ndarray):
     '''
     Encode the categorical labels
     '''
-    return LABEL_ENCODER.fit_transform(y);
+    return LABEL_ENCODER.fit_transform(y.reshape(-1, 1));
 
 def decodeLabel(y: np.ndarray):
     '''

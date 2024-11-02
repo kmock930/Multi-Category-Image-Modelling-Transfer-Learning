@@ -39,3 +39,4 @@ input_shape = (img_height, img_width, 3);
 optimizer = 'adam';
 loss = 'binary_crossentropy';
 metrics = ['accuracy'];
+epoch = 10;
