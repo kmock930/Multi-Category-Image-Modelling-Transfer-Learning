@@ -23,7 +23,6 @@ def printConfMtx(y_true: np.ndarray, y_pred: np.ndarray):
     new_row_items = new_col_items = class_names + ['All'];
 
     # Convert to DataFrame with class names
-    #confMtx_df = pd.DataFrame(confMtx, index=class_names, columns=class_names);
     confMtx = confMtx.reindex(index=new_row_items, columns=new_col_items);
     confMtx.index.name = 'Actual';
     confMtx.columns.name = 'Predicted';
