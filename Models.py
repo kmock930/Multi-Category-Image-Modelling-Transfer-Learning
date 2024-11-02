@@ -4,7 +4,7 @@ from tensorflow.keras import layers, models;
 import constants;
 import matplotlib.pyplot as plt;
 import numpy as np;
-from setup import encodeLabel;
+from setup import encodeLabel, decodeLabel;
 
 class Model:
     resnet50: ResNet50;
@@ -105,4 +105,7 @@ class Model:
         plt.show();
 
     def predict(self, model, X_test: np.ndarray):
-        return model.predict(X_test);
+        y_pred = model.predict(X_test);
+        print(f"Number of Predictions made: {len(y_pred)}");
+        print(f"Unique Labels in Prediction: {np.unique(decodeLabel(y_pred))}");
+        return y_pred;
