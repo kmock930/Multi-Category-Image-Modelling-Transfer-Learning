@@ -25,6 +25,7 @@ ALLOWED_IMAGE_FORMATS = ('.jpg', '.jpeg', '.png');
 # paths
 PROJECT_ROOT_DIR = ".";
 DATASETS_ROOT_DIR = ['stonefly', 'segmentation'];
+BBOX_FILENAME = "bbox.txt";
 
 VALIDATION_SIZE = 0.2; # a ratio of split
 random_state = 42;

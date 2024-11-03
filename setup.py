@@ -88,14 +88,22 @@ def load_image_path(dataset: str, setName: str):
     return imagePaths, y;
 
 def load_images(dataset: str, setName: str):
+    # Opens a new textfile (to store image file paths) in "Overwrite" mode
+    file_segmentation_paths = open(f"segmentation-{setName}-image-paths.txt", "w");
+
     X = np.empty(constants.input_shape);
     img_paths, y  = load_image_path(dataset=dataset, setName=setName);
+
     imgIndToDisplay = random.randint(0, len(img_paths) - 1);
     images = [];
     for imgInd in range(len(img_paths)):
-        if (os.path.isfile(img_paths[imgInd])):
+        path = img_paths[imgInd];
+        if (dataset == constants.DATASETS_ROOT_DIR[1]):
+            # store image paths into a text file
+            file_segmentation_paths.write(path);
+        if (os.path.isfile(path)):
             # keep in RGB 3 channels
-            img_array = imread(img_paths[imgInd], as_gray=False);
+            img_array = imread(path, as_gray=False);
 
         if (imgInd == imgIndToDisplay):
             displayImage(img_array, y[imgInd], isBefore=True);
@@ -109,6 +117,7 @@ def load_images(dataset: str, setName: str):
         images.append(img_array);
 
     X = np.array(images);
+    file_segmentation_paths.close();
     return X, y;
 
 def encodeLabel(y: np.ndarray):
@@ -179,11 +188,6 @@ def split(X: np.ndarray, y: np.ndarray):
         stratify=y,
         random_state=constants.random_state
     );
-    # caching
-    cacheData(data=X_train, filename="X_train.npy");
-    cacheData(data=X_validation, filename="X_valdation.npy");
-    cacheData(data=y_train, filename="y_-train.npy");
-    cacheData(data=y_validation, filename="y_validation.npy");
     return X_train, X_validation, y_train, y_validation;
 
 # filename in .npy extension
@@ -194,3 +198,124 @@ def cacheData(data: np.ndarray, filename: str):
     except Exception:
         print(traceback.format_exc())
         return False;
+
+def toGrayscale(img_array: np.ndarray):
+    return rgb2gray(img_array);
+
+def convertImages2Grayscale(images: np.ndarray):
+    new_images_array = [];
+    for img_array in images:
+        new_images_array.append(toGrayscale(img_array));
+    new_images_array = np.asarray(new_images_array);
+    return new_images_array;
+
+def getBoundingBoxCoordinates(binary_image: np.ndarray, toDisplay: bool = False):
+    '''
+    Get all the bounding box coordinates from a BINARY image.
+    '''
+    # Find indices of non-zero pixels
+    rows, cols = np.where(binary_image[:, :] > 0);
+    height, width = binary_image.shape[:2];
+    
+    if (toDisplay == True):
+        # Print the rows and cols (as numpy arrays) of a random image for inspection
+        print(f"Number of non-zero row indices in an image in this set: {len(rows)}");
+        print(f"Number of non-zero column indices in an image in this set: {len(cols)}");
+    
+    return {
+        # normalize the coordinates
+        "height": height,
+        "width": width,
+        "lower_left_x": min(cols) / width,
+        "lower_left_y": min(rows) / height,
+        "upper_right_x": max(cols) / width,
+        "upper_right_y": max(rows) / height
+    };
+
+# Note: the orders of images in all arrays should be the exact same.
+def saveBBoxCoordinates(images_set: np.ndarray, y_images_set: np.ndarray, img_paths: str, setName: str):
+    # Prerequisite: Open a file in "Append" mode
+    bbox_file = open(constants.BBOX_FILENAME, mode="a");
+
+    # Step 1: parsing the image's name from the corresponding file paths
+    img_paths:list = img_paths.split(".\segmentation");
+    # removing unnecessary items from the list
+    img_paths.remove("");
+    image_names = [getImageNameFromPath(img_path) for img_path in img_paths];
+    
+    # Step 2: Convert all images to binary in grayscale
+    images_set_binary = convertImages2Grayscale(images_set);
+
+    # Step 2.5 (optional): Show a random image after processing (to grayscale)
+    randInd: int = random.randint(0, len(images_set_binary) - 1);
+    randImg: np.ndarray = images_set_binary[randInd];
+    print(f"-----{setName}-----");
+    displayImage(
+        img_array=randImg,
+        category=y_images_set[randInd],
+        isBefore=False
+    );
+    print(f"Shape of an image in this set: {randImg.shape}");
+
+    # Step 3: Get all Bounding Box Coordinates
+    bbox_items: list = [];
+    for ind in range(len(images_set_binary)):
+        bbox_dict: dict = {};
+        binary_image: np.ndarray = images_set_binary[ind];
+        image_name = image_names[ind];
+
+        if (ind == randInd):
+            # Print image name
+            print(f"Image Name: {image_name}");
+        
+        bbox = getBoundingBoxCoordinates(
+            binary_image=binary_image,
+            toDisplay=ind == randInd
+        );
+        # record all the necessary info to be placed in another file
+        height = bbox['height'];
+        width = bbox['width'];
+        lower_left_x = bbox['lower_left_x'];
+        lower_left_y = bbox['lower_left_y'];
+        upper_right_x = bbox['upper_right_x'];
+        upper_right_y = bbox['upper_right_y'];
+    
+        if (ind == randInd):
+            # print inspection messages
+            print(f"Height of an image in {setName}: {height}");
+            print(f"Width of an image in {setName}: {width}");
+            print(f"Lower left corner of an image in {setName}: ({lower_left_x}, {lower_left_y})");
+            print(f"Upper right corner of an image in {setName}: ({upper_right_x}, {upper_right_y})");
+
+        # Save a line to the file
+        try:
+            line: str = f"{image_name}\t{lower_left_x}\t{lower_left_y}\t{upper_right_x}\t{upper_right_y}\n";
+            bbox_file.write(line);
+        except:
+            print(f"Error printing info of image {image_name}");
+    
+        # Save to the dictionary
+        bbox_dict.update({
+            "image_name": image_name,
+            "height": height,
+            "width": width,
+            "lower_left_x": lower_left_x,
+            "lower_left_y": lower_left_y,
+            "upper_right_x": upper_right_x,
+            "upper_right_y": upper_right_y
+        });
+    
+        # Append dictionary to list
+        bbox_items.append(bbox_dict);
+
+    # Step 4: Close the file
+    bbox_file.close();
+    return bbox_items;
+
+def getImageNameFromPath(img_path: str):
+    img_path = img_path.lstrip(".\segmentation\set0");
+    for allowed_format in constants.ALLOWED_IMAGE_FORMATS:
+        img_path = img_path.rstrip(allowed_format);
+    img_path = img_path.split('\\');
+    image_name = img_path[-1].split(".")[0];
+    return image_name;
