@@ -12,6 +12,7 @@ outputs/
 # ignoring large generated files
 *.npy
 *.txt
+*.h5
 
 # Distribution / packaging
 .Python

@@ -72,8 +72,8 @@ class Model:
         self.resnet50V2.compile(optimizer=constants.optimizer, loss=constants.loss, metrics=constants.metrics);
 
         # Save the models
-        cacheData(self.resnet50, "resnet50-pretrained.npy");
-        cacheData(self.resnet50V2, "resnet50V2-pretrained.npy");
+        self.resnet50.save("resnet50-pretrained.h5");
+        self.resnet50V2.save("resnet50V2-pretrained.h5");
 
     def train(self, model, X_train: np.ndarray, y_train: np.ndarray, X_val: np.ndarray, y_val: np.ndarray):
         '''
@@ -93,8 +93,8 @@ class Model:
             )
         );
         # Save the models
-        cacheData(self.resnet50, "resnet50-posttrained.npy");
-        cacheData(self.resnet50V2, "resnet50V2-posttrained.npy"); 
+        self.resnet50.save("resnet50-posttrained.h5");
+        self.resnet50V2.save("resnet50V2-posttrained.h5");
 
         self.plotLearningCurve(history);
         return history;
