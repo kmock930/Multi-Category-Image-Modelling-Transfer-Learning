@@ -108,7 +108,7 @@ def load_images(dataset: str, setName: str):
             if (os.path.isfile(path)):
                 # keep in RGB 3 channels
                 img_array = imread(path, as_gray=False);
-                new_y.append(y[imgInd]);
+            
             if (imgInd == imgIndToDisplay):
                 displayImage(img_array, y[imgInd], isBefore=True);
 
@@ -119,6 +119,8 @@ def load_images(dataset: str, setName: str):
 
             # save an image to samples array
             images.append(img_array);
+            # derive the label and save to labels array
+            new_y.append(y[imgInd]);
 
     X = np.array(images);
     y = np.array(new_y);
