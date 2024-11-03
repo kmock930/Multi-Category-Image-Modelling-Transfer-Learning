@@ -4,7 +4,7 @@ from tensorflow.keras import layers, models;
 import constants;
 import matplotlib.pyplot as plt;
 import numpy as np;
-from setup import encodeLabel, decodeLabel;
+from setup import encodeLabel, decodeLabel, cacheData;
 
 class Model:
     resnet50: ResNet50;
@@ -66,8 +66,8 @@ class Model:
         self.resnet50V2.compile(optimizer=constants.optimizer, loss=constants.loss, metrics=constants.metrics);
 
         # Save the models
-        np.save("resnet50-pretrained.npy", self.resnet50);
-        np.save("resnet50V2-pretrained.npy", self.resnet50V2);
+        cacheData(self.resnet50, "resnet50-pretrained.npy");
+        cacheData(self.resnet50V2, "resnet50V2-pretrained.npy");
 
     def train(self, model, X_train: np.ndarray, y_train: np.ndarray, X_val: np.ndarray, y_val: np.ndarray):
         '''
@@ -87,8 +87,8 @@ class Model:
             )
         );
         # Save the models
-        np.save("resnet50-posttrained.npy", self.resnet50);
-        np.save("resnet50V2-posttrained.npy", self.resnet50V2);
+        cacheData(self.resnet50, "resnet50-posttrained.npy");
+        cacheData(self.resnet50V2, "resnet50V2-posttrained.npy"); 
 
         self.plotLearningCurve(history);
         return history;
@@ -116,7 +116,7 @@ class Model:
         # loss plot
         plt.plot(history.history['loss']);
         plt.plot(history.history['val_loss']);
-        plt.title('Model loss');
+        plt.title('Learning Curve - Model loss');
         plt.ylabel('Loss');
         plt.xlabel('Epoch');
         plt.legend(['Train', 'Validation'], loc='upper left');
