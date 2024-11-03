@@ -1,7 +1,6 @@
 import os;
 import constants;
 import numpy as np;
-import skimage.io as imshow;
 from skimage.io import imread;
 from skimage import exposure;
 from skimage.exposure import rescale_intensity;
@@ -37,18 +36,20 @@ def load_image_path(dataset: str, setName: str):
                                 imagePath: str = os.path.join(setPath, imagePath);
                                 if (os.path.isfile(imagePath) == True):
                                     if (imagePath.endswith(constants.ALLOWED_IMAGE_FORMATS)):
-                                        # add to sample and label arrays
-                                        imagePaths = np.append(imagePaths, imagePath);
+                                        if (setName in imagePath):
+                                            # add to sample and label arrays
+                                            imagePaths = np.append(imagePaths, imagePath);
 
-                                        y = np.append(y, category);
+                                            y = np.append(y, category);
                                 else: #still a directory
                                     for output in os.listdir(imagePath):
                                         outputPath = os.path.join(imagePath, output);
                                         if (os.path.isfile(outputPath)):
                                             if (outputPath.endswith(constants.ALLOWED_IMAGE_FORMATS) == True):
-                                                # add to sample and label arrays
-                                                imagePaths = np.append(imagePaths, imagePath);
-                                                y = np.append(y, category);
+                                                if (setName in outputPath):
+                                                    # add to sample and label arrays
+                                                    imagePaths = np.append(imagePaths, imagePath);
+                                                    y = np.append(y, category);
                                         elif (os.path.isdir(outputPath)):
                                             raise NameError(f"The path {imagePath} contains unexpected subdirectories inside.");
                         else:
@@ -71,7 +72,7 @@ def load_image_path(dataset: str, setName: str):
                         if (os.path.isdir(categoryPath)):
                             for imgPath in os.listdir(categoryPath):
                                 imgPath = os.path.join(categoryPath, imgPath);
-                                if (os.path.isfile(imgPath)):
+                                if (os.path.isfile(imgPath) and setName in imgPath):
                                     # add to sample and label arrays
                                     imagePaths = np.append(imagePaths, imgPath);
 
@@ -89,35 +90,40 @@ def load_image_path(dataset: str, setName: str):
 
 def load_images(dataset: str, setName: str):
     # Opens a new textfile (to store image file paths) in "Overwrite" mode
-    file_segmentation_paths = open(f"segmentation-{setName}-image-paths.txt", "w");
+    if (dataset == constants.DATASETS_ROOT_DIR[1]):
+        file_segmentation_paths = open(f"segmentation-{setName}-image-paths.txt", "w");
 
     X = np.empty(constants.input_shape);
     img_paths, y  = load_image_path(dataset=dataset, setName=setName);
 
     imgIndToDisplay = random.randint(0, len(img_paths) - 1);
     images = [];
+    new_y = [];
     for imgInd in range(len(img_paths)):
         path = img_paths[imgInd];
-        if (dataset == constants.DATASETS_ROOT_DIR[1]):
-            # store image paths into a text file
-            file_segmentation_paths.write(path);
-        if (os.path.isfile(path)):
-            # keep in RGB 3 channels
-            img_array = imread(path, as_gray=False);
+        if (setName in path):
+            if (dataset == constants.DATASETS_ROOT_DIR[1]):
+                # store image paths into a text file
+                file_segmentation_paths.write(path);
+            if (os.path.isfile(path)):
+                # keep in RGB 3 channels
+                img_array = imread(path, as_gray=False);
+                new_y.append(y[imgInd]);
+            if (imgInd == imgIndToDisplay):
+                displayImage(img_array, y[imgInd], isBefore=True);
 
-        if (imgInd == imgIndToDisplay):
-            displayImage(img_array, y[imgInd], isBefore=True);
+            img_array = preprocess(img_array);
 
-        img_array = preprocess(img_array);
+            if (imgInd == imgIndToDisplay):
+                displayImage(img_array, y[imgInd], isBefore=False);
 
-        if (imgInd == imgIndToDisplay):
-            displayImage(img_array, y[imgInd], isBefore=False);
-
-        # save an image to samples array
-        images.append(img_array);
+            # save an image to samples array
+            images.append(img_array);
 
     X = np.array(images);
-    file_segmentation_paths.close();
+    y = np.array(new_y);
+    if (dataset == constants.DATASETS_ROOT_DIR[1]):
+        file_segmentation_paths.close();
     return X, y;
 
 def encodeLabel(y: np.ndarray):
@@ -208,113 +214,8 @@ def convertImages2Grayscale(images: np.ndarray):
     new_images_array = np.asarray(new_images_array);
     return new_images_array;
 
-def getBoundingBoxCoordinates(binary_image: np.ndarray, toDisplay: bool = False):
-    '''
-    Get all the bounding box coordinates from a BINARY image.
-    '''
-    # Find indices of non-zero pixels
-    rows, cols = np.where(binary_image[:, :] > 0);
-    height, width = binary_image.shape[:2];
-    
-    if (toDisplay == True):
-        # Print the rows and cols (as numpy arrays) of a random image for inspection
-        print(f"Number of non-zero row indices in an image in this set: {len(rows)}");
-        print(f"Number of non-zero column indices in an image in this set: {len(cols)}");
-    
-    return {
-        # normalize the coordinates
-        "height": height,
-        "width": width,
-        "lower_left_x": min(cols) / width,
-        "lower_left_y": min(rows) / height,
-        "upper_right_x": max(cols) / width,
-        "upper_right_y": max(rows) / height
-    };
-
-# Note: the orders of images in all arrays should be the exact same.
-def saveBBoxCoordinates(images_set: np.ndarray, y_images_set: np.ndarray, img_paths: str, setName: str):
-    # Prerequisite: Open a file in "Append" mode
-    if (os.path.exists(constants.BBOX_DIRECTORY) != True):
-        os.mkdir(constants.BBOX_DIRECTORY);
-    bbox_file = open(constants.BBOX_FILENAME, mode="a");
-
-    # Step 1: parsing the image's name from the corresponding file paths
-    img_paths:list = img_paths.split(".\segmentation");
-    # removing unnecessary items from the list
-    img_paths.remove("");
-    image_names = [getImageNameFromPath(img_path) for img_path in img_paths];
-    
-    # Step 2: Convert all images to binary in grayscale
-    images_set_binary = convertImages2Grayscale(images_set);
-
-    # Step 2.5 (optional): Show a random image after processing (to grayscale)
-    randInd: int = random.randint(0, len(images_set_binary) - 1);
-    randImg: np.ndarray = images_set_binary[randInd];
-    print(f"-----{setName}-----");
-    displayImage(
-        img_array=randImg,
-        category=y_images_set[randInd],
-        isBefore=False
-    );
-    print(f"Shape of an image in this set: {randImg.shape}");
-
-    # Step 3: Get all Bounding Box Coordinates
-    bbox_items: list = [];
-    for ind in range(len(images_set_binary)):
-        bbox_dict: dict = {};
-        binary_image: np.ndarray = images_set_binary[ind];
-        image_name = image_names[ind];
-
-        if (ind == randInd):
-            # Print image name
-            print(f"Image Name: {image_name}");
-        
-        bbox = getBoundingBoxCoordinates(
-            binary_image=binary_image,
-            toDisplay=ind == randInd
-        );
-        # record all the necessary info to be placed in another file
-        height = bbox['height'];
-        width = bbox['width'];
-        lower_left_x = bbox['lower_left_x'];
-        lower_left_y = bbox['lower_left_y'];
-        upper_right_x = bbox['upper_right_x'];
-        upper_right_y = bbox['upper_right_y'];
-    
-        if (ind == randInd):
-            # print inspection messages
-            print(f"Height of an image in {setName}: {height}");
-            print(f"Width of an image in {setName}: {width}");
-            print(f"Lower left corner of an image in {setName}: ({lower_left_x}, {lower_left_y})");
-            print(f"Upper right corner of an image in {setName}: ({upper_right_x}, {upper_right_y})");
-
-        # Save a line to the file
-        try:
-            line: str = f"{image_name}\t{lower_left_x}\t{lower_left_y}\t{upper_right_x}\t{upper_right_y}\n";
-            bbox_file.write(line);
-        except:
-            print(f"Error printing info of image {image_name}");
-    
-        # Save to the dictionary
-        bbox_dict.update({
-            "image_name": image_name,
-            "height": height,
-            "width": width,
-            "lower_left_x": lower_left_x,
-            "lower_left_y": lower_left_y,
-            "upper_right_x": upper_right_x,
-            "upper_right_y": upper_right_y
-        });
-    
-        # Append dictionary to list
-        bbox_items.append(bbox_dict);
-
-    # Step 4: Close the file
-    bbox_file.close();
-    return bbox_items;
-
-def getImageNameFromPath(img_path: str):
-    img_path = img_path.lstrip(".\segmentation\set0");
+def getImageNameFromPath(img_path: str, setName: str):
+    img_path = img_path.lstrip(f".\segmentation\{setName}");
     for allowed_format in constants.ALLOWED_IMAGE_FORMATS:
         img_path = img_path.rstrip(allowed_format);
     img_path = img_path.split('\\');
