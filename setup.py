@@ -132,7 +132,6 @@ def decodeLabel(y: np.ndarray):
     '''
     return LABEL_ENCODER.inverse_transform(y.astype(int));
 
-
 def preprocess(img_array: np.ndarray):
     # Resizing to make the image smaller in resolution
     img_array = setResolution(img_array);
@@ -235,6 +234,8 @@ def getBoundingBoxCoordinates(binary_image: np.ndarray, toDisplay: bool = False)
 # Note: the orders of images in all arrays should be the exact same.
 def saveBBoxCoordinates(images_set: np.ndarray, y_images_set: np.ndarray, img_paths: str, setName: str):
     # Prerequisite: Open a file in "Append" mode
+    if (os.path.exists(constants.BBOX_DIRECTORY) != True):
+        os.mkdir(constants.BBOX_DIRECTORY);
     bbox_file = open(constants.BBOX_FILENAME, mode="a");
 
     # Step 1: parsing the image's name from the corresponding file paths
