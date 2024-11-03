@@ -137,7 +137,11 @@ def drawBoundingBox(bboxFilepath: str, X_imageSet: np.ndarray, y_imageSet: np.nd
             # Display a random image (for easier debugging)
             if (currImgInd == randInd):
                 # Plot the image
-                image = X_imageSet[currImgInd];
+                if (currImgInd < len(X_imageSet)):
+                    image = X_imageSet[currImgInd];
+                else:
+                    # to avoid index out of bound
+                    image = X_imageSet[-1];
                 fig, ax = plt.subplots();
                 ax.imshow(image);
             
