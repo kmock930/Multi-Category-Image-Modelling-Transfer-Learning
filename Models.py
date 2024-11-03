@@ -7,37 +7,43 @@ import numpy as np;
 from setup import encodeLabel, decodeLabel, cacheData;
 
 class Model:
-    resnet50: ResNet50;
-    resnet50V2: ResNet50V2;
+    resnet50: ResNet50 = None;
+    resnet50V2: ResNet50V2 = None;
 
-    def __init__(self):
+    def __init__(self, resnet50: ResNet50 = None, resnet50V2: ResNet50V2 = None):
         '''
         Constructor: Load the pretrained models
         '''
-        # https://www.tensorflow.org/api_docs/python/tf/keras/applications/ResNet50
-        self.resnet50 = tf.keras.applications.ResNet50(
-            include_top=False, # Remove fully-connected layers
-            weights='imagenet',
-            input_tensor=None,
-            input_shape=constants.input_shape,
-            pooling=None,
-            classes=1000,
-            classifier_activation='softmax'
-        );
-
+        if (resnet50 == None):
+            # https://www.tensorflow.org/api_docs/python/tf/keras/applications/ResNet50
+            self.resnet50 = tf.keras.applications.ResNet50(
+                include_top=False, # Remove fully-connected layers
+                weights='imagenet',
+                input_tensor=None,
+                input_shape=constants.input_shape,
+                pooling=None,
+                classes=1000,
+                classifier_activation='softmax'
+            );
+        else:
+            self.resnet50 = resnet50;
+        
         # Freeze all layers in the base model
-        self.resnet50.trainable = False
+        self.resnet50.trainable = False;
 
-        # https://www.tensorflow.org/api_docs/python/tf/keras/applications/ResNet50V2
-        self.resnet50V2 = tf.keras.applications.ResNet50V2(
-            include_top=False, # Remove fully-connected layers
-            weights='imagenet',
-            input_tensor=None,
-            input_shape=constants.input_shape,
-            pooling=None,
-            classes=1000,
-            classifier_activation='softmax'
-        );
+        if (resnet50V2 == None):
+            # https://www.tensorflow.org/api_docs/python/tf/keras/applications/ResNet50V2
+            self.resnet50V2 = tf.keras.applications.ResNet50V2(
+                include_top=False, # Remove fully-connected layers
+                weights='imagenet',
+                input_tensor=None,
+                input_shape=constants.input_shape,
+                pooling=None,
+                classes=1000,
+                classifier_activation='softmax'
+            );
+        else:
+            self.resnet50V2 = resnet50V2;
 
         # Freeze all layers in the base model
         self.resnet50V2.trainable = False
