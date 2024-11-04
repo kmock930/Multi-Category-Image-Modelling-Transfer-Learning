@@ -165,6 +165,7 @@ def drawBoundingBox(X_imageSet: np.ndarray, bboxFilepath: str = None, y_imageSet
             randInd: int = random.randint(0, len(X_imageSet) - 1);
             for currImgInd in range(len(X_imageSet)):
                 coordinates: list = y_imageSet[currImgInd];
+                coordinates = np.clip(coordinates, 0, 1);
                 lower_left_x, lower_left_y, upper_right_x, upper_right_y = coordinates[0], coordinates[1], coordinates[2], coordinates[3];
                 
                 # Denormalize Bounding Box
