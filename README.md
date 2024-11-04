@@ -2,7 +2,7 @@
 ## Project Preview
 ![image](https://github.com/user-attachments/assets/433afb73-b4bf-4a45-9c30-5ee214dab407)
 ![image](https://github.com/user-attachments/assets/5c80f46c-63d2-4dce-a90b-5599f9930c4c)
-## Aims:
+## Aims
 - Build 2 neural-network-based classifiers (i.e., ResNet50 and ResNet50-V2) to recognize more categories in the stonefiles dataset: https://web.engr.oregonstate.edu/~tgd/bugid/stonefly9/
 - Perform Data Preprocessing.
 - Evaluate the model's performance via some standard metrics and predictions. 
