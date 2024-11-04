@@ -37,6 +37,9 @@ gamma = 0.8;
 gaussianSigma = 0.5;  
 
 # Models
+RESNET50 = "ResNet50";
+RESNET50V2 = "ResNet50V2";
+
 input_shape = (img_height, img_width, 3);
 optimizer = 'adam';
 loss = 'binary_crossentropy';

@@ -96,6 +96,7 @@ def saveBBoxCoordinates(images_set: np.ndarray, y_images_set: np.ndarray, img_pa
         # Save to the dictionary
         bbox_dict.update({
             "image_name": image_name,
+            "binary_image": binary_image,
             "height": height,
             "width": width,
             "lower_left_x": lower_left_x,
