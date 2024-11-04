@@ -2,7 +2,7 @@ import numpy as np;
 import os;
 import random;
 import constants;
-from setup import getImageNameFromPath, convertImages2Grayscale, displayImage;
+from setup import getImageNameFromPath, convertImages2Grayscale, displayImage, denormalize;
 from matplotlib import pyplot as plt, patches;
 import traceback;
 
@@ -166,6 +166,13 @@ def drawBoundingBox(X_imageSet: np.ndarray, bboxFilepath: str = None, y_imageSet
             for currImgInd in range(len(X_imageSet)):
                 coordinates: list = y_imageSet[currImgInd];
                 lower_left_x, lower_left_y, upper_right_x, upper_right_y = coordinates[0], coordinates[1], coordinates[2], coordinates[3];
+                
+                # Denormalize Bounding Box
+                lower_left_x = int(coordinates[0] * constants.img_width);
+                lower_left_y = int(coordinates[1] * constants.img_height);
+                upper_right_x = int(coordinates[2] * constants.img_width);
+                upper_right_y = int(coordinates[3] * constants.img_height);
+                
                 # Calculate box dimensions
                 box_x = lower_left_x;
                 box_y = lower_left_y;
@@ -176,10 +183,10 @@ def drawBoundingBox(X_imageSet: np.ndarray, bboxFilepath: str = None, y_imageSet
                 if (currImgInd == randInd):
                     # Plot the image
                     if (currImgInd < len(X_imageSet)):
-                        image = X_imageSet[currImgInd];
+                        image = denormalize(X_imageSet[currImgInd]);
                     else:
                         # to avoid index out of bound
-                        image = X_imageSet[-1];
+                        image = denormalize(X_imageSet[-1]);
                     fig, ax = plt.subplots();
                     ax.imshow(image);
                 

@@ -223,3 +223,17 @@ def getImageNameFromPath(img_path: str, setName: str):
     img_path = img_path.split('\\');
     image_name = img_path[-1].split(".")[0];
     return image_name;
+
+def denormalize(img_array: np.ndarray):
+    """
+    Denormalize an image array from [0, 1] back to the original range according to the given normalization process.
+    """
+    # Assuming img_array was clipped to [0, 1], first rescale it
+    img_array = img_array * 255.0;  # Scale back to 0-255 range
+
+    img_array = tf.clip_by_value(img_array, 0, 255);
+
+    # Optionally, if needed for specific processing steps, cast to uint8
+    img_array = tf.cast(img_array, tf.uint8);
+    
+    return img_array;
