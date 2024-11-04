@@ -21,6 +21,7 @@ set1 = 'set1';
 
 LABELS = [CAL, DOR, HES, ISO, MOS, PTE, SWE, YOR, ZAP];
 ALLOWED_IMAGE_FORMATS = ('.jpg', '.jpeg', '.png');
+NUM_CLASSES = len(LABELS);
 
 # paths
 PROJECT_ROOT_DIR = ".";
@@ -45,3 +46,6 @@ optimizer = 'adam';
 loss = 'binary_crossentropy';
 metrics = ['accuracy'];
 epoch = 10;
+
+combined_metrics = {'classification_output': 'accuracy', 'regression_output': 'mae'};
+combined_less = {'classification_output': 'categorical_crossentropy', 'regression_output': 'mse'};
