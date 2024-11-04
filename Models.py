@@ -4,7 +4,7 @@ from tensorflow.keras import layers, models;
 import constants;
 import matplotlib.pyplot as plt;
 import numpy as np;
-from setup import encodeLabel, decodeLabel, cacheData;
+from setup import encodeLabel, decodeLabel;
 
 class Model:
     resnet50: ResNet50 = None;
@@ -98,11 +98,14 @@ class Model:
         # Save the models
         if (modelName == constants.RESNET50):
             model.save("resnet50-posttrained.h5");
+            self.resnet50 = model;
         elif (modelName == constants.RESNET50V2):
             if (isRegression == True):
                 model.save("resnet50V2-regression-posttrained.h5");
+                self.resnet50V2_regressor = model;
             else:
                 model.save("resnet50V2-posttrained.h5");
+                self.resnet50V2 = model;
 
         self.plotLearningCurve(history);
         return history;
@@ -161,10 +164,13 @@ class Model:
 
     def predict(self, model, X_test: np.ndarray, isRegression: bool = False):
         y_pred = model.predict(X_test);
-        if (isRegression != True):
-            y_pred = decodeLabel(y_pred);
         print(f"Number of Predictions made: {len(y_pred)}");
-        print(f"Unique Labels in Prediction: {len(np.unique(y_pred))}");
+        if (isRegression != True):
+            # Classification
+            print(f"Unique Labels in Prediction: {np.unique(decodeLabel(y_pred))}");
+        else:
+            # Regression
+            print(f"Number of Unique Labels in Prediction: {len(np.unique(y_pred))}");
         return y_pred;
 
     def transferLearning(self, baseModel=None):
@@ -185,5 +191,6 @@ class Model:
             # Save the model to a .h5 file
             model.save("resnet50V2-regression-posttrained.h5");
 
+            self.resnet50V2_regressor = model;
             return model;
         return baseModel;

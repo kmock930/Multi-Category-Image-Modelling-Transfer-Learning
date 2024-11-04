@@ -112,52 +112,88 @@ def saveBBoxCoordinates(images_set: np.ndarray, y_images_set: np.ndarray, img_pa
     bbox_file.close();
     return bbox_items;
 
-def drawBoundingBox(bboxFilepath: str, X_imageSet: np.ndarray, y_imageSet: np.ndarray, setName: str):
+def drawBoundingBox(X_imageSet: np.ndarray, bboxFilepath: str = None, y_imageSet: np.ndarray=None, isPred: bool = False):
     '''
     Draw a bounding box around the object inside an image.\n
     Source: https://stackoverflow.com/questions/37435369/how-to-draw-a-rectangle-on-image
     '''
     try:
-        bboxFile = open(bboxFilepath, "r");
-        bboxFileContents = bboxFile.readlines();
-        randInd: int = random.randint(0, len(bboxFileContents) - 1);
-        for currImgInd in range(len(bboxFileContents)):
-            imageBBOX = bboxFileContents[currImgInd];
-            imageName, lower_left_x, lower_left_y, upper_right_x, upper_right_y = imageBBOX.split('\t');
-            lower_left_x = float(lower_left_x);
-            lower_left_y = float(lower_left_y);
-            upper_right_x = float(upper_right_x);
-            upper_right_y = float(upper_right_y);
+        if (isPred != True):
+            # Get Original Params from bbox.txt
+            bboxFile = open(bboxFilepath, "r");
+            bboxFileContents = bboxFile.readlines();
+            randInd: int = random.randint(0, len(bboxFileContents) - 1);
+            for currImgInd in range(len(bboxFileContents)):
+                imageBBOX = bboxFileContents[currImgInd];
+                imageName, lower_left_x, lower_left_y, upper_right_x, upper_right_y = imageBBOX.split('\t');
+                lower_left_x = float(lower_left_x);
+                lower_left_y = float(lower_left_y);
+                upper_right_x = float(upper_right_x);
+                upper_right_y = float(upper_right_y);
 
-            # Calculate box dimensions
-            box_x = lower_left_x;
-            box_y = lower_left_y;
-            box_width = upper_right_x - lower_left_x;
-            box_height = upper_right_y - lower_left_y;
-            
-            # Display a random image (for easier debugging)
-            if (currImgInd == randInd):
-                # Plot the image
-                if (currImgInd < len(X_imageSet)):
-                    image = X_imageSet[currImgInd];
-                else:
-                    # to avoid index out of bound
-                    image = X_imageSet[-1];
-                fig, ax = plt.subplots();
-                ax.imshow(image);
-            
-                # Create a Rectangle patch
-                rect = patches.Rectangle(
-                    (box_x, box_y), box_width, box_height,
-                    linewidth=2, edgecolor='r', facecolor='none'
-                );
-            
-                # Add the rectangle to the plot
-                ax.add_patch(rect);
-            
-                plt.show();
+                # Calculate box dimensions
+                box_x = lower_left_x;
+                box_y = lower_left_y;
+                box_width = upper_right_x - lower_left_x;
+                box_height = upper_right_y - lower_left_y;
+                
+                # Display a random image (for easier debugging)
+                if (currImgInd == randInd):
+                    # Plot the image
+                    if (currImgInd < len(X_imageSet)):
+                        image = X_imageSet[currImgInd];
+                    else:
+                        # to avoid index out of bound
+                        image = X_imageSet[-1];
+                    fig, ax = plt.subplots();
+                    ax.imshow(image);
+                
+                    # Create a Rectangle patch
+                    rect = patches.Rectangle(
+                        (box_x, box_y), box_width, box_height,
+                        linewidth=2, edgecolor='r', facecolor='none'
+                    );
+                
+                    # Add the rectangle to the plot
+                    ax.add_patch(rect);
+                
+                    plt.show();
 
-        bboxFile.close();
+            bboxFile.close();
+        else:
+            # Handling a Prediction Result
+            randInd: int = random.randint(0, len(X_imageSet) - 1);
+            for currImgInd in range(len(X_imageSet)):
+                coordinates: list = y_imageSet[currImgInd];
+                lower_left_x, lower_left_y, upper_right_x, upper_right_y = coordinates[0], coordinates[1], coordinates[2], coordinates[3];
+                # Calculate box dimensions
+                box_x = lower_left_x;
+                box_y = lower_left_y;
+                box_width = upper_right_x - lower_left_x;
+                box_height = upper_right_y - lower_left_y;
+                
+                # Display a random image (for easier debugging)
+                if (currImgInd == randInd):
+                    # Plot the image
+                    if (currImgInd < len(X_imageSet)):
+                        image = X_imageSet[currImgInd];
+                    else:
+                        # to avoid index out of bound
+                        image = X_imageSet[-1];
+                    fig, ax = plt.subplots();
+                    ax.imshow(image);
+                
+                    # Create a Rectangle patch
+                    rect = patches.Rectangle(
+                        (box_x, box_y), box_width, box_height,
+                        linewidth=2, edgecolor='r', facecolor='none'
+                    );
+                
+                    # Add the rectangle to the plot
+                    ax.add_patch(rect);
+                
+                    plt.show();
+
         return True;
     except Exception as e:
         traceback.print_exception(e);
