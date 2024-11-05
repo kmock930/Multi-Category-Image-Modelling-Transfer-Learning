@@ -5,6 +5,8 @@ import constants;
 from setup import getImageNameFromPath, convertImages2Grayscale, displayImage, denormalize;
 from matplotlib import pyplot as plt, patches;
 import traceback;
+import tensorflow as tf;
+from tensorflow.keras.preprocessing.image import ImageDataGenerator;
 
 def getBoundingBoxCoordinates(binary_image: np.ndarray, toDisplay: bool = False):
     '''
@@ -206,3 +208,58 @@ def drawBoundingBox(X_imageSet: np.ndarray, bboxFilepath: str = None, y_imageSet
     except Exception as e:
         traceback.print_exception(e);
         return False;
+
+def dataAugmentation(X: np.ndarray, y: np.ndarray):
+    randInd: int = random.randint(0, len(X)-1);
+    X_adjusted = [];
+    y_adjusted = [];
+    for currImgInd in range(len(X)):
+        image = X[currImgInd];
+        origBBox = y[currImgInd];
+        newBBox = None;
+        # Horizontal Flip
+        if (tf.random.uniform([]) > 0.5):
+            image = tf.image.flip_left_right(image);
+            newBBox = [constants.img_width - origBBox[2], origBBox[1], constants.img_width - origBBox[0], origBBox[3]];
+        # Vertical Flip
+        if tf.random.uniform([]) > 0.5:
+            image = tf.image.flip_up_down(image);
+            if (newBBox != None):
+                newBBox = [newBBox[0], constants.img_height - newBBox[3], newBBox[2], constants.img_height - newBBox[1]];
+            else:
+                newBBox = [origBBox[0], constants.img_height - origBBox[3], origBBox[2], constants.img_height - origBBox[1]];
+        
+        # Random Brightness Adjustment
+        image = tf.image.random_brightness(image, max_delta=0.2);
+
+        if (newBBox != None):
+            # Small Random Scaling
+            scale = tf.random.uniform([], 0.9, 1.1);
+            new_height = tf.cast(scale * tf.cast(constants.img_height, tf.float32), tf.int32);
+            new_width = tf.cast(scale * tf.cast(constants.img_width, tf.float32), tf.int32);
+            image = tf.image.resize(image, (new_height, new_width));
+
+            # Apply Scale
+            newBBox = [
+                newBBox[0] * scale,
+                newBBox[1] * scale,
+                newBBox[2] * scale,
+                newBBox[3] * scale
+            ];
+
+        image = tf.image.resize_with_crop_or_pad(image, constants.img_height, constants.img_width);
+        X_adjusted.append(image);
+        if (newBBox != None):
+            y_adjusted.append(newBBox);
+        else:
+            y_adjusted.append(origBBox);
+    
+    X_adjusted = np.array(X_adjusted);
+    y_adjusted = np.array(y_adjusted);
+
+    print(f"Shape of a new Image: {X_adjusted[randInd].shape}");
+    print(f"Total Number of Images adjusted: {len(X_adjusted)}");
+    print(f"Shape of new BBox Coordinates: {y_adjusted[randInd].shape}");
+    print(f"New BBox Coordinates look like: {y_adjusted[randInd]}");
+    return X_adjusted, y_adjusted;
+        
